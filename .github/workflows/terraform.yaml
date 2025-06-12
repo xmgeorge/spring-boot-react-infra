@@ -109,3 +109,15 @@ jobs:
             -i ${{ needs.generate_build_id.outputs.build_id }} \
             -e ${{ needs.generate_build_id.outputs.branch }} \
             -a plan
+
+      - name: Terraform VPC Plan Apply
+        id: vpc_plan_apply
+        run: |
+          cd tfscaffold
+          ./bin/terraform.sh \
+            -p codebule \
+            -c vpc \
+            -r us-east-1 \
+            -i ${{ needs.generate_build_id.outputs.build_id }} \
+            -e ${{ needs.generate_build_id.outputs.branch }} \
+            -a apply
