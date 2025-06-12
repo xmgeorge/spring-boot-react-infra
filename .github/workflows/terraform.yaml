@@ -47,7 +47,7 @@ jobs:
         # add a step output `steps.build_id.outputs.id` as the unique id
         run: echo "::set-output name=id::$(date +%s)"
       - name: 'Cache .build-id'
-        uses: actions/cache@v1
+        uses: actions/cache@v4
         with:
           # store the build id to github cache
           path: ${{ github.workspace }}/.build-id
