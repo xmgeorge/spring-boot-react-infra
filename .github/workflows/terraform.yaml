@@ -26,7 +26,7 @@ jobs:
         run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
 
   view_tf_plan:
-
+    needs: generate_build_id
     runs-on: ubuntu-latest
 
     container:
@@ -52,7 +52,7 @@ jobs:
             -p codebule \
             -c vpc \
             -r us-east-1 \
-            -e ${{ needs.extract_branch.outputs.branch }} \
+            -e ${{ needs.generate_build_id.outputs.branch }} \
             -a show
 
       - name: Terraform VPC Plan to S3
@@ -63,6 +63,6 @@ jobs:
             -p codebule \
             -c vpc \
             -r us-east-1 \
-            -i ${{ needs.build_id.outputs.id }} \
-            -e ${{ needs.extract_branch.outputs.branch }} \
+            -i ${{ needs.generate_build_id.outputs.build_id }} \
+            -e ${{ needs.generate_build_id.outputs.branch }} \
             -a plan
