@@ -40,7 +40,7 @@ jobs:
             terraform fmt -check -recursive components/ etc/
       
   tflint:
-    needs: generate_build_id
+    needs: [generate_build_id,terraform_fmt]
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/terraform-linters/tflint-bundle:latest
