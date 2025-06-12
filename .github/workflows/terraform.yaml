@@ -1,0 +1,142 @@
+name: Terraform
+
+on:
+  push:
+    branches: [dev]
+
+jobs:
+  generate_build_id:
+
+    runs-on: ubuntu-latest
+
+    outputs:
+      build_id: ${{ steps.build_id.outputs.id }}
+      branch: ${{ steps.extract_branch.outputs.branch }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate build ID
+        id: build_id
+        run: echo "id=$(date +%s)" >> $GITHUB_OUTPUT
+
+      - name: Extract branch name
+        id: extract_branch
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+
+  terraform_fmt:
+      needs: generate_build_id
+      runs-on: ubuntu-latest
+      container:
+        image: hashicorp/terraform:1.8.5
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
+  
+        - name: Run terraform fmt
+          run: |
+            cd tfscaffold
+            terraform fmt -check -recursive components/ etc/
+      
+  tflint:
+    needs: [generate_build_id,terraform_fmt]
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/terraform-linters/tflint-bundle:latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run TFLint
+        run: |
+          cd tfscaffold/components
+          tflint --init
+          tflint --recursive
+
+  checkov:
+    needs: [generate_build_id,tflint]
+    runs-on: ubuntu-latest
+    container:
+      image: bridgecrew/checkov:latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Checkov
+        run: |
+          cd tfscaffold/components/
+          checkov -d . --skip-check CKV_TF_1
+
+  view_tf_plan:
+    needs: [generate_build_id,tflint,checkov]
+    runs-on: ubuntu-latest
+
+    container:
+      image: georgeulahannan/terraform:07
+      options: --user root
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Terraform VPC Show Plan
+        id: vpc_plan_show
+        run: |
+          cd tfscaffold
+          ./bin/terraform.sh \
+            -p codebule \
+            -c vpc \
+            -r us-east-1 \
+            -e ${{ needs.generate_build_id.outputs.branch }} \
+            -a show
+
+      - name: Terraform VPC Plan to S3
+        id: vpc_plan_upload_s3
+        run: |
+          cd tfscaffold
+          ./bin/terraform.sh \
+            -p codebule \
+            -c vpc \
+            -r us-east-1 \
+            -i ${{ needs.generate_build_id.outputs.build_id }} \
+            -e ${{ needs.generate_build_id.outputs.branch }} \
+            -a plan
+
+  tf_plan_apply:
+    needs: [generate_build_id,terraform_fmt,tflint,checkov,view_tf_plan]
+    runs-on: ubuntu-latest
+
+    container:
+      image: georgeulahannan/terraform:07
+      options: --user root
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Terraform VPC Plan Apply
+        id: vpc_plan_apply
+        run: |
+          cd tfscaffold
+          ./bin/terraform.sh \
+            -p codebule \
+            -c vpc \
+            -r us-east-1 \
+            -i ${{ needs.generate_build_id.outputs.build_id }} \
+            -e ${{ needs.generate_build_id.outputs.branch }} \
+            -a apply

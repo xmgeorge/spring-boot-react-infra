@@ -53,7 +53,7 @@ module "vpc" {
   tags = merge(
     local.tags,
     {
-      "Name" = "${local.vpc_name}"
+      "Name" = local.vpc_name
     },
   )
 }
