@@ -53,8 +53,7 @@ jobs:
             -c vpc \
             -e ${{ needs.generate_build_id.outputs.branch }} \
             -r us-east-1 \
-            -w \
-            -a plan
+            -a show
       # - name: Terraform VPC Plan
       #   id: vpc_plan_output
       #   run: |
