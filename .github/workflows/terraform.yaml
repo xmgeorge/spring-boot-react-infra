@@ -44,24 +44,25 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Terraform VPC Plan
-        id: vpc_plan_output
+      - name: Terraform VPC Show Plan
+        id: vpc_plan_show
         run: |
           cd tfscaffold
           ./bin/terraform.sh \
             -p codebule \
             -c vpc \
             -r us-east-1 \
-            -e dev \
+            -e ${{ needs.extract_branch.outputs.branch }} \
             -a show
-      # - name: Terraform VPC Plan
-      #   id: vpc_plan_output
-      #   run: |
-      #     cd tfscaffold && 
-      #     ./bin/terraform.sh -p codebule -c vpc -e ${{ needs.extract_branch.outputs.branch }} -r us-east-1 -a plan
-    
-      # - name: Terraform VPC Plan Output
-      #   id: vpc_plan
-      #   run: |
-      #     cd tfscaffold
-      #     ./bin/terraform.sh -p codebule -c vpc -i ${{ needs.build_id.outputs.id }} -e ${{ needs.extract_branch.outputs.branch }} -r us-east-1 -w -a plan
+
+      - name: Terraform VPC Plan to S3
+        id: vpc_plan_upload_s3
+        run: |
+          cd tfscaffold
+          ./bin/terraform.sh \
+            -p codebule \
+            -c vpc \
+            -r us-east-1 \
+            -i ${{ needs.build_id.outputs.id }} \
+            -e ${{ needs.extract_branch.outputs.branch }} \
+            -a plan
