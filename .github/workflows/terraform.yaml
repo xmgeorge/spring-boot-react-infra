@@ -2,11 +2,7 @@ name: Terraform
 
 on:
   push:
-    paths:
-      - 'tfscaffold/**'
-  pull_request:
-    paths:
-      - 'tfscaffold/**'
+    branches: [dev]
 
 jobs:
   terraform:
