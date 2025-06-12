@@ -51,8 +51,8 @@ jobs:
           ./bin/terraform.sh \
             -p codebule \
             -c vpc \
-            -e ${{ needs.generate_build_id.outputs.branch }} \
             -r us-east-1 \
+            -e dev \
             -a show
       # - name: Terraform VPC Plan
       #   id: vpc_plan_output
