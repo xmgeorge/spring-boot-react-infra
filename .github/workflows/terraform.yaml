@@ -5,7 +5,28 @@ on:
     branches: [dev]
 
 jobs:
-  terraform:
+  generate_build_id:
+
+    runs-on: ubuntu-latest
+
+    outputs:
+      build_id: ${{ steps.build_id.outputs.id }}
+      branch: ${{ steps.extract_branch.outputs.branch }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate build ID
+        id: build_id
+        run: echo "id=$(date +%s)" >> $GITHUB_OUTPUT
+
+      - name: Extract branch name
+        id: extract_branch
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+
+  view_tf_plan:
+
     runs-on: ubuntu-latest
 
     container:
@@ -23,42 +44,14 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Extract branch name
-        shell: bash
-        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
-        id: extract_branch
-
-      - name: Print branch name
-        shell: bash
-        run: echo ${{ steps.extract_branch.outputs.branch }}
-
-      # - name: Set Build Number Environment Variable
-      #   run: |
-      #     echo "BUILD_NUMBER=$((${{ github.run_number }}+${{ github.run_attempt }}))" >> $GITHUB_ENV
-      #     echo $BUILD_NUMBER
-
-      # - name: Increase build
-      #   run: |
-      #     echo "GITHUB_RUN_NUMBER_WITH_OFFSET=$(($GITHUB_RUN_NUMBER+1971))" >> $GITHUB_ENV
-      #     echo $GITHUB_RUN_NUMBER_WITH_OFFSET
-
-      - name: 'Set build id'
-        id: build_id
-        run: echo "id=$(date +%s)" >> $GITHUB_OUTPUT
-        
-      - name: 'Cache .build-id'
-        uses: actions/cache@v4
-        with:
-          # store the build id to github cache
-          path: ${{ github.workspace }}/.build-id
-          # use the build id to generate a completly unique cache
-          key: ${{ runner.os }}-build-id-${{ github.head_ref }}-${{ github.sha }}-${{ steps.build_id.outputs.id }}
-      - name: 'Save build id'
-        # store the build id to a folder that we can later cache.
+      - name: Terraform VPC Plan
+        id: vpc_plan_output
         run: |
-          mkdir -p .build-id
-          echo $BUILD_ID 
-          echo $BUILD_ID > .build-id/id
-
-        env:
-          BUILD_ID: ${{ steps.build_id.outputs.id }}
+          cd tfscaffold
+          ./bin/terraform.sh -p codebule -c vpc -e ${{ needs.extract_branch.outputs.branch }} -r us-east-1 -w -a plan
+      
+      - name: Terraform VPC Plan Output
+        id: vpc_plan
+        run: |
+          cd tfscaffold
+          ./bin/terraform.sh -p codebule -c vpc -i ${{ needs.build_id.outputs.id }} -e ${{ needs.extract_branch.outputs.branch }} -r us-east-1 -w -a plan
