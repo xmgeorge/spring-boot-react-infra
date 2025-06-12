@@ -25,6 +25,20 @@ jobs:
         id: extract_branch
         run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
 
+  terraform_fmt:
+      needs: generate_build_id
+      runs-on: ubuntu-latest
+      container:
+        image: hashicorp/terraform:1.8.5
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
+  
+        - name: Run terraform fmt
+          run: |
+            cd tfscaffold
+            terraform fmt -check -recursive components/ etc/
+      
   tflint:
     needs: generate_build_id
     runs-on: ubuntu-latest
