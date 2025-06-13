@@ -64,6 +64,7 @@ jobs:
             tflint --chdir="$dir" --config ../.tflint.hcl || exit 1
           done
 
+          
   checkov:
     needs: [generate_build_id,tflint]
     runs-on: ubuntu-latest
