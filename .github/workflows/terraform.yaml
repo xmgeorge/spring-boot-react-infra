@@ -110,6 +110,29 @@ jobs:
             -e ${{ needs.generate_build_id.outputs.branch }} \
             -a plan
 
+      - name: Terraform EKS Show Plan
+        id: eks_plan_show
+        run: |
+          cd tfscaffold
+          ./bin/terraform.sh \
+            -p codebule \
+            -c eks \
+            -r us-east-1 \
+            -e ${{ needs.generate_build_id.outputs.branch }} \
+            -a show
+    
+      - name: Terraform EKS Plan to S3
+        id: eks_plan_upload_s3
+        run: |
+          cd tfscaffold
+          ./bin/terraform.sh \
+            -p codebule \
+            -c eks \
+            -r us-east-1 \
+            -i ${{ needs.generate_build_id.outputs.build_id }} \
+            -e ${{ needs.generate_build_id.outputs.branch }} \
+            -a plan
+
   tf_plan_apply:
     needs: [generate_build_id,terraform_fmt,tflint,checkov,view_tf_plan]
     runs-on: ubuntu-latest
@@ -136,6 +159,18 @@ jobs:
           ./bin/terraform.sh \
             -p codebule \
             -c vpc \
+            -r us-east-1 \
+            -i ${{ needs.generate_build_id.outputs.build_id }} \
+            -e ${{ needs.generate_build_id.outputs.branch }} \
+            -a apply
+
+      - name: Terraform EKS Plan Apply
+        id: eks_plan_apply
+        run: |
+          cd tfscaffold
+          ./bin/terraform.sh \
+            -p codebule \
+            -c eks \
             -r us-east-1 \
             -i ${{ needs.generate_build_id.outputs.build_id }} \
             -e ${{ needs.generate_build_id.outputs.branch }} \
