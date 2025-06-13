@@ -38,21 +38,49 @@ jobs:
           run: |
             cd tfscaffold
             terraform fmt -check -recursive components/ etc/
-      
+    
   tflint:
-    needs: [generate_build_id,terraform_fmt]
+    needs: [generate_build_id, terraform_fmt]
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/terraform-linters/tflint-bundle:latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run TFLint
+      - name: Set up TFLint
+        uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: latest
+
+      - name: Run TFLint on each component
         run: |
           cd tfscaffold/components
-          tflint --init
-          tflint --recursive --config .tflint.hcl
+
+          # Initialize TFLint plugins once (assumes shared config at root)
+          tflint --init --config ../.tflint.hcl
+
+          # Loop through each module subdirectory and run TFLint
+          for dir in */ ; do
+            echo "Running TFLint in $dir..."
+            tflint --chdir="$dir" --config ../.tflint.hcl || exit 1
+          done
+
+
+  
+      
+  # tflint:
+  #   needs: [generate_build_id,terraform_fmt]
+  #   runs-on: ubuntu-latest
+  #   container:
+  #     image: ghcr.io/terraform-linters/tflint-bundle:latest
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+
+  #     - name: Run TFLint
+  #       run: |
+  #         cd tfscaffold/components
+  #         tflint --init
+  #         tflint --recursive --config .tflint.hcl
 
   checkov:
     needs: [generate_build_id,tflint]
