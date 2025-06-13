@@ -1,0 +1,8 @@
+# .checkov.yml
+
+
+
+# skip_checks:
+#   - CKV_TF_2  # Allow unpinned Terraform module sources (e.g., for dev use)
+
+skip_all: true

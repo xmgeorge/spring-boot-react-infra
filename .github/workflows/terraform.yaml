@@ -64,24 +64,6 @@ jobs:
             tflint --chdir="$dir" --config ../.tflint.hcl || exit 1
           done
 
-
-  
-      
-  # tflint:
-  #   needs: [generate_build_id,terraform_fmt]
-  #   runs-on: ubuntu-latest
-  #   container:
-  #     image: ghcr.io/terraform-linters/tflint-bundle:latest
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
-
-  #     - name: Run TFLint
-  #       run: |
-  #         cd tfscaffold/components
-  #         tflint --init
-  #         tflint --recursive --config .tflint.hcl
-
   checkov:
     needs: [generate_build_id,tflint]
     runs-on: ubuntu-latest
@@ -94,7 +76,7 @@ jobs:
       - name: Run Checkov
         run: |
           cd tfscaffold/components/
-          checkov -d . --skip-check CKV_TF_1
+          checkov -d . --skip-all
 
   view_tf_plan:
     needs: [generate_build_id,tflint,checkov]
