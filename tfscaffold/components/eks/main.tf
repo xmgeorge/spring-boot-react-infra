@@ -11,35 +11,34 @@ module "eks" {
 
   #create_kms_key = false
 
-  cluster_ip_family             = "ipv4"
-#   kms_key_enable_default_policy = false
-  enable_irsa                   = true
+  cluster_ip_family = "ipv4"
+  #   kms_key_enable_default_policy = false
+  enable_irsa = true
 
   enable_cluster_creator_admin_permissions = true
 
 
 
-access_entries = merge(
-  {
-    for entry in local.eks_access_entries : entry.username => {
-      principal_arn = entry.username
-      policy_associations = {
-        single = {
-          policy_arn = entry.access_policy
-          access_scope = {
-            type = "cluster"
+  access_entries = merge(
+    {
+      for entry in local.eks_access_entries : entry.username => {
+        principal_arn = entry.username
+        policy_associations = {
+          single = {
+            policy_arn = entry.access_policy
+            access_scope = {
+              type = "cluster"
+            }
           }
         }
       }
+    },
+    {
+      self_node_group = {
+        principal_arn = aws_iam_role.self_node_role.arn
+      }
     }
-  },
-  {
-    self_node_group = {
-      principal_arn = aws_iam_role.self_node_role.arn
-      # Optional: kubernetes_groups = ["system:bootstrappers", "system:nodes"]
-    }
-  }
-)
+  )
 
 
 
@@ -84,16 +83,16 @@ locals {
       user_arn = []
     }
     admin = {
-      user_arn = ["arn:aws:iam::774305572856:root"]
+      user_arn = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
     }
   }
 
   eks_access_entries = flatten([
     for group, config in local.eks_access_list : [
       for arn in config.user_arn : {
-        username       = arn
-        access_policy  = lookup(local.eks_access_policy, group, null)
-        access_type    = group
+        username      = arn
+        access_policy = lookup(local.eks_access_policy, group, null)
+        access_type   = group
       }
     ]
   ])
