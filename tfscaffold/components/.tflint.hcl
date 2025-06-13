@@ -1,3 +1,6 @@
+plugin "terraform" {
+  enabled = true
+}
 # Disable unused locals
 rule "terraform_unused_declarations" {
   enabled = false
@@ -10,5 +13,9 @@ rule "terraform_module_version" {
 
 # Disable missing version constraints for providers
 rule "terraform_required_providers" {
+  enabled = false
+}
+
+rule "terraform_required_version" {
   enabled = false
 }
