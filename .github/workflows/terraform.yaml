@@ -64,7 +64,7 @@ jobs:
             tflint --chdir="$dir" --config ../.tflint.hcl || exit 1
           done
 
-          
+
   checkov:
     needs: [generate_build_id,tflint]
     runs-on: ubuntu-latest
@@ -77,7 +77,7 @@ jobs:
       - name: Run Checkov
         run: |
           cd tfscaffold/components/
-          checkov -d . --skip-all
+          checkov -d . --config-file ../.checkov.yml
 
   view_tf_plan:
     needs: [generate_build_id,tflint,checkov]
