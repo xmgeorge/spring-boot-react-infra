@@ -1,21 +1,24 @@
 module "eks" {
-  source                                 = "terraform-aws-modules/eks/aws"
-  version                                = "20.13.1"
-  cluster_name                           = local.cluster_name
-  cluster_version                        = var.cluster_version
-  cluster_enabled_log_types              = local.cluster_enabled_log_types
-  cloudwatch_log_group_retention_in_days = 7
-  cluster_endpoint_public_access         = true
-  cluster_endpoint_public_access_cidrs   = var.cluster_public_access_cidrs
-  cluster_service_ipv4_cidr              = var.cluster_service_ipv4_cidr
+  source                                   = "terraform-aws-modules/eks/aws"
+  version                                  = "20.13.1"
+  cluster_name                             = local.cluster_name
+  cluster_version                          = var.cluster_version
+  cluster_enabled_log_types                = local.cluster_enabled_log_types
+  cloudwatch_log_group_retention_in_days   = 7
+  cluster_endpoint_public_access           = var.cluster_endpoint_public_access
+  cluster_endpoint_public_access_cidrs     = var.cluster_public_access_cidrs
+  cluster_service_ipv4_cidr                = var.cluster_service_ipv4_cidr
+  enable_cluster_creator_admin_permissions = true
+  cluster_ip_family                        = "ipv4"
+  enable_irsa                              = true
 
   #create_kms_key = false
 
-  cluster_ip_family = "ipv4"
-  #   kms_key_enable_default_policy = false
-  enable_irsa = true
 
-  enable_cluster_creator_admin_permissions = true
+  #   kms_key_enable_default_policy = false
+
+
+
 
 
 
