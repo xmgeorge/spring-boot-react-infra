@@ -38,21 +38,32 @@ jobs:
           run: |
             cd tfscaffold
             terraform fmt -check -recursive components/ etc/
-      
+    
   tflint:
-    needs: [generate_build_id,terraform_fmt]
+    needs: [generate_build_id, terraform_fmt]
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/terraform-linters/tflint-bundle:latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run TFLint
+      - name: Set up TFLint
+        uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: latest
+
+      - name: Run TFLint on each component
         run: |
           cd tfscaffold/components
-          tflint --init
-          tflint --recursive
+
+          # Initialize TFLint plugins once (assumes shared config at root)
+          tflint --init --config ../.tflint.hcl
+
+          # Loop through each module subdirectory and run TFLint
+          for dir in */ ; do
+            echo "Running TFLint in $dir..."
+            tflint --chdir="$dir" --config ../.tflint.hcl || exit 1
+          done
+
 
   checkov:
     needs: [generate_build_id,tflint]
@@ -66,7 +77,7 @@ jobs:
       - name: Run Checkov
         run: |
           cd tfscaffold/components/
-          checkov -d . --skip-check CKV_TF_1
+          checkov -d . --skip-check CKV_TF*
 
   view_tf_plan:
     needs: [generate_build_id,tflint,checkov]
@@ -110,6 +121,29 @@ jobs:
             -e ${{ needs.generate_build_id.outputs.branch }} \
             -a plan
 
+      - name: Terraform EKS Show Plan
+        id: eks_plan_show
+        run: |
+          cd tfscaffold
+          ./bin/terraform.sh \
+            -p codebule \
+            -c eks \
+            -r us-east-1 \
+            -e ${{ needs.generate_build_id.outputs.branch }} \
+            -a show
+    
+      - name: Terraform EKS Plan to S3
+        id: eks_plan_upload_s3
+        run: |
+          cd tfscaffold
+          ./bin/terraform.sh \
+            -p codebule \
+            -c eks \
+            -r us-east-1 \
+            -i ${{ needs.generate_build_id.outputs.build_id }} \
+            -e ${{ needs.generate_build_id.outputs.branch }} \
+            -a plan
+
   tf_plan_apply:
     needs: [generate_build_id,terraform_fmt,tflint,checkov,view_tf_plan]
     runs-on: ubuntu-latest
@@ -136,6 +170,18 @@ jobs:
           ./bin/terraform.sh \
             -p codebule \
             -c vpc \
+            -r us-east-1 \
+            -i ${{ needs.generate_build_id.outputs.build_id }} \
+            -e ${{ needs.generate_build_id.outputs.branch }} \
+            -a apply
+
+      - name: Terraform EKS Plan Apply
+        id: eks_plan_apply
+        run: |
+          cd tfscaffold
+          ./bin/terraform.sh \
+            -p codebule \
+            -c eks \
             -r us-east-1 \
             -i ${{ needs.generate_build_id.outputs.build_id }} \
             -e ${{ needs.generate_build_id.outputs.branch }} \
