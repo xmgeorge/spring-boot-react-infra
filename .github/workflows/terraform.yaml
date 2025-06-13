@@ -52,7 +52,7 @@ jobs:
         run: |
           cd tfscaffold/components
           tflint --init
-          tflint --recursive
+          tflint --recursive --config .tflint.hcl
 
   checkov:
     needs: [generate_build_id,tflint]
