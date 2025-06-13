@@ -1,5 +1,5 @@
 plugin "terraform" {
-  enabled = true
+  enabled = false
 }
 # Disable unused locals
 rule "terraform_unused_declarations" {
