@@ -35,9 +35,6 @@ module "eks_blueprints_addons" {
   tags = local.tags
 }
 
-
-
-
 #Role for vpc cni
 resource "aws_iam_role" "vpc_cni" {
   name = "${local.cluster_name}-vpc-cni"
