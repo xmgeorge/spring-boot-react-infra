@@ -22,5 +22,5 @@ module "self_managed_node_group" {
     module.eks.node_security_group_id,
   ]
 
-  tags = local.tags
+  tags = local.tags 
 }

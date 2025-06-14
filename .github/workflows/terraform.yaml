@@ -121,6 +121,18 @@ jobs:
             -e ${{ needs.generate_build_id.outputs.branch }} \
             -a plan
 
+      - name: Terraform VPC Plan Apply
+        id: vpc_plan_apply
+        run: |
+          cd tfscaffold
+          ./bin/terraform.sh \
+            -p codebule \
+            -c vpc \
+            -r us-east-1 \
+            -i ${{ needs.generate_build_id.outputs.build_id }} \
+            -e ${{ needs.generate_build_id.outputs.branch }} \
+            -a apply
+
       - name: Terraform EKS Show Plan
         id: eks_plan_show
         run: |
@@ -144,37 +156,6 @@ jobs:
             -e ${{ needs.generate_build_id.outputs.branch }} \
             -a plan
 
-  tf_plan_apply:
-    needs: [generate_build_id,terraform_fmt,tflint,checkov,view_tf_plan]
-    runs-on: ubuntu-latest
-
-    container:
-      image: georgeulahannan/terraform:07
-      options: --user root
-      
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - name: Terraform VPC Plan Apply
-        id: vpc_plan_apply
-        run: |
-          cd tfscaffold
-          ./bin/terraform.sh \
-            -p codebule \
-            -c vpc \
-            -r us-east-1 \
-            -i ${{ needs.generate_build_id.outputs.build_id }} \
-            -e ${{ needs.generate_build_id.outputs.branch }} \
-            -a apply
-
       - name: Terraform EKS Plan Apply
         id: eks_plan_apply
         run: |
@@ -186,3 +167,46 @@ jobs:
             -i ${{ needs.generate_build_id.outputs.build_id }} \
             -e ${{ needs.generate_build_id.outputs.branch }} \
             -a apply
+
+  # tf_plan_apply:
+  #   needs: [generate_build_id,terraform_fmt,tflint,checkov,view_tf_plan]
+  #   runs-on: ubuntu-latest
+
+  #   container:
+  #     image: georgeulahannan/terraform:07
+  #     options: --user root
+      
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+
+  #     - name: Configure AWS credentials
+  #       uses: aws-actions/configure-aws-credentials@v1
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: us-east-1
+
+  #     - name: Terraform VPC Plan Apply
+  #       id: vpc_plan_apply
+  #       run: |
+  #         cd tfscaffold
+  #         ./bin/terraform.sh \
+  #           -p codebule \
+  #           -c vpc \
+  #           -r us-east-1 \
+  #           -i ${{ needs.generate_build_id.outputs.build_id }} \
+  #           -e ${{ needs.generate_build_id.outputs.branch }} \
+  #           -a apply
+
+  #     - name: Terraform EKS Plan Apply
+  #       id: eks_plan_apply
+  #       run: |
+  #         cd tfscaffold
+  #         ./bin/terraform.sh \
+  #           -p codebule \
+  #           -c eks \
+  #           -r us-east-1 \
+  #           -i ${{ needs.generate_build_id.outputs.build_id }} \
+  #           -e ${{ needs.generate_build_id.outputs.branch }} \
+  #           -a apply
