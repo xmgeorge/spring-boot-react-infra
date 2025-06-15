@@ -69,10 +69,10 @@ jobs:
         id: bastion_plan
         run: |
           cd tfscaffold
-          ./bin/terraform.sh -p codeblue -c bastion -i ${{ steps.get_build_id.outputs.build_id }} -e ${{ steps.get_branch.outputs.branch_name }} -r us-east-1 -a plan
+          ./bin/terraform.sh -p codeblue -c bastion -e ${{ steps.get_branch.outputs.branch_name }} -r us-east-1 -a plan
 
       - name: Terraform Bastion apply
         if: steps.bastion_plan.outcome == 'success'
         run: |
           cd tfscaffold
-          ./bin/terraform.sh -p codeblue -c bastion -i ${{ steps.get_build_id.outputs.build_id }} -e ${{ steps.get_branch.outputs.branch_name }} -r us-east-1 -a apply
+          ./bin/terraform.sh -p codeblue -c bastion -e ${{ steps.get_branch.outputs.branch_name }} -r us-east-1 -a apply
