@@ -2,8 +2,8 @@ module "acm" {
   source  = "terraform-aws-modules/acm/aws"
   version = "~> 4.0"
 
-  domain_name  = data.aws_route53_zone.selected.name
-  zone_id      = data.aws_route53_zone.selected.zone_id
+  domain_name = data.aws_route53_zone.selected.name
+  zone_id     = data.aws_route53_zone.selected.zone_id
 
   validation_method = "DNS"
 
@@ -20,5 +20,5 @@ module "acm" {
 
 
 data "aws_route53_zone" "selected" {
-  name         = "georgeulahannan.live."
+  name = "georgeulahannan.live."
 }
