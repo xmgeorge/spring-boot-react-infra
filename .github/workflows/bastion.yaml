@@ -1,6 +1,10 @@
 name: Bastion
 
 on:
+  push:
+    branches: [dev]
+    paths:
+      - 'packer/**'
   workflow_dispatch: 
 
 jobs:
