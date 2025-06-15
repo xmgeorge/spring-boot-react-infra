@@ -1,9 +1,9 @@
 module "alb" {
   source = "terraform-aws-modules/alb/aws"
 
-  name    = local.cluster_name
-  vpc_id  = data.terraform_remote_state.vpc.outputs.vpc_id
-  subnets = data.terraform_remote_state.vpc.outputs.public_subnets
+  name                       = local.cluster_name
+  vpc_id                     = data.terraform_remote_state.vpc.outputs.vpc_id
+  subnets                    = data.terraform_remote_state.vpc.outputs.public_subnets
   enable_deletion_protection = false
   # Security Group
   security_group_ingress_rules = {
@@ -33,7 +33,7 @@ module "alb" {
   #   bucket = "my-alb-logs"
   # }
 
-  security_groups = [data.terraform_remote_state.vpc.outputs.vpc_default_security_group,]
+  security_groups = [data.terraform_remote_state.vpc.outputs.vpc_default_security_group, ]
 
   listeners = {
     ex-http-https-redirect = {
@@ -58,11 +58,11 @@ module "alb" {
 
   target_groups = {
     ex-instance = {
-      name_prefix      = "h1"
-      protocol         = "HTTP"
-      port             = 30080
-      target_type      = "instance"
-      target_id        = "i-081e02096f59bd22f"
+      name_prefix = "h1"
+      protocol    = "HTTP"
+      port        = 30080
+      target_type = "instance"
+      target_id   = "i-081e02096f59bd22f"
     }
 
   }

@@ -33,32 +33,32 @@ module "eks_blueprints_addons" {
   enable_aws_load_balancer_controller = true
 
   aws_load_balancer_controller = {
-  service_account_annotations = {
-    "eks.amazonaws.com/role-arn" = aws_iam_role.alb_controller.arn
+    service_account_annotations = {
+      "eks.amazonaws.com/role-arn" = aws_iam_role.alb_controller.arn
+    }
   }
-}
-  
+
   enable_external_dns = false
-  enable_cert_manager         = false
+  enable_cert_manager = false
 
-#   external_dns = {
-#   name          = "external-dns"
-#   chart_version = "1.12.2"
-#   repository    = "https://kubernetes-sigs.github.io/external-dns/"
-#   namespace     = "external-dns"
+  #   external_dns = {
+  #   name          = "external-dns"
+  #   chart_version = "1.12.2"
+  #   repository    = "https://kubernetes-sigs.github.io/external-dns/"
+  #   namespace     = "external-dns"
 
-#   values = [yamlencode({
-#     args = [
-#       "--source=ingress",
-#       "--domain-filter=georgeulahannan.live",
-#       "--provider=aws",
-#       "--registry=txt",
-#       "--txt-owner-id=george-cluster",
-#       "--txt-prefix=external-dns-",
-#       "--interval=1m"
-#     ]
-#   })]
-# }
+  #   values = [yamlencode({
+  #     args = [
+  #       "--source=ingress",
+  #       "--domain-filter=georgeulahannan.live",
+  #       "--provider=aws",
+  #       "--registry=txt",
+  #       "--txt-owner-id=george-cluster",
+  #       "--txt-prefix=external-dns-",
+  #       "--interval=1m"
+  #     ]
+  #   })]
+  # }
   # external_dns_route53_zone_arns = [data.terraform_remote_state.acm.outputs.zone_arn]
 
   tags = local.tags

@@ -7,7 +7,7 @@ output "zone_id" {
 }
 
 output "zone_arn" {
- value = data.aws_route53_zone.selected.arn 
+  value = data.aws_route53_zone.selected.arn
 }
 
 output "acm_certificate_arn" {

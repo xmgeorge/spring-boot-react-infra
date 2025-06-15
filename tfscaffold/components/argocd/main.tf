@@ -23,9 +23,9 @@ resource "helm_release" "argo_cd" {
   }
 
   set {
-  name  = "configs.params.server.insecure"
-  value = "false"
-}
+    name  = "configs.params.server.insecure"
+    value = "false"
+  }
 
   set {
     name  = "configs.params.server.insecure"

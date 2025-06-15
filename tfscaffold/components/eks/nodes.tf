@@ -7,8 +7,8 @@ module "self_managed_node_group" {
   cluster_endpoint    = module.eks.cluster_endpoint
   cluster_auth_base64 = module.eks.cluster_certificate_authority_data
 
-  subnet_ids = data.terraform_remote_state.vpc.outputs.public_subnets
-  target_group_arns = [data.terraform_remote_state.alb.outputs.alb_target_group_arn]
+  subnet_ids           = data.terraform_remote_state.vpc.outputs.public_subnets
+  target_group_arns    = [data.terraform_remote_state.alb.outputs.alb_target_group_arn]
   instance_type        = "t3.large"
   min_size             = 1
   max_size             = 2

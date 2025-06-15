@@ -7,5 +7,5 @@ locals {
       "component"   = var.component
     },
   )
-   cluster_name = "${var.project}-${var.environment}"
+  cluster_name = "${var.project}-${var.environment}"
 }

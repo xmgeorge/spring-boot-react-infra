@@ -5,8 +5,8 @@ resource "kubernetes_manifest" "sample_app" {
     kind       = "Application"
 
     metadata = {
-      name      = "spring-boot-react-k8s-manifest"
-      namespace = "${data.terraform_remote_state.argocd.outputs.argocd_namespace}"
+      name       = "spring-boot-react-k8s-manifest"
+      namespace  = "${data.terraform_remote_state.argocd.outputs.argocd_namespace}"
       finalizers = ["resources-finalizer.argocd.argoproj.io"]
     }
 
