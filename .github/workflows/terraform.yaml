@@ -240,7 +240,7 @@ jobs:
             -a apply
 
   view_eks_tf_plan_apply:
-    needs: [generate_build_id,tflint,checkov,view_vpc_tf_plan_apply]
+    needs: [generate_build_id,tflint,checkov,view_vpc_tf_plan_apply,view_alb_tf_plan_apply]
     runs-on: ubuntu-latest
     container:
       image: georgeulahannan/terraform:07
@@ -393,6 +393,59 @@ jobs:
           ./bin/terraform.sh \
             -p codebule \
             -c argocd \
+            -r us-east-1 \
+            -i ${{ needs.generate_build_id.outputs.build_id }} \
+            -e ${{ needs.generate_build_id.outputs.branch }} \
+            -a apply
+
+  view_argocdapp_tf_plan_apply:
+    needs: [generate_build_id,tflint,checkov,view_vpc_tf_plan_apply,view_eks_tf_plan_apply,view_addons_tf_plan_apply]
+    runs-on: ubuntu-latest
+    container:
+      image: georgeulahannan/terraform:07
+      options: --user root
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Terraform ARGOCD APP packages Show Plan
+        id: argocdapp_plan_show
+        run: |
+          cd tfscaffold
+          ./bin/terraform.sh \
+            -p codebule \
+            -c argocdapp \
+            -r us-east-1 \
+            -e ${{ needs.generate_build_id.outputs.branch }} \
+            -a show
+    
+      - name: Terraform ARGOCD packages Plan to S3
+        id: argocdapp_plan_upload_s3
+        run: |
+          cd tfscaffold
+          ./bin/terraform.sh \
+            -p codebule \
+            -c argocdapp \
+            -r us-east-1 \
+            -i ${{ needs.generate_build_id.outputs.build_id }} \
+            -e ${{ needs.generate_build_id.outputs.branch }} \
+            -a plan
+
+      - name: Terraform ARGOCD APP Plan Apply
+        id: argocdapp_plan_apply
+        run: |
+          cd tfscaffold
+          ./bin/terraform.sh \
+            -p codebule \
+            -c argocdapp \
             -r us-east-1 \
             -i ${{ needs.generate_build_id.outputs.build_id }} \
             -e ${{ needs.generate_build_id.outputs.branch }} \
