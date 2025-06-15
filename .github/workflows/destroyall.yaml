@@ -1,10 +1,8 @@
-name: destroyall
+name: DestroyAll
 
 on:
   push:
     branches: [dev]
-    paths:
-      - 'tfscaffold/**'
   workflow_dispatch:
 
 jobs:
