@@ -1,8 +1,6 @@
 name: DestroyAll
 
 on:
-  push:
-    branches: [dev]
   workflow_dispatch:
 
 jobs:
@@ -24,14 +22,21 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Terraform Destroy All
+      - name: Terraform Destroy argocdapp
         run: |
           cd tfscaffold
-          for component in argocdapp argocd; do
             ./bin/terraform.sh \
               -p codebule \
-              -c "$component" \
+              -c argocdapp \
               -r us-east-1 \
               -e "${{ github.event.inputs.branch }}" \
               -a destroy
-          done
+      - name: Terraform Destroy argocd
+        run: |
+          cd tfscaffold
+            ./bin/terraform.sh \
+              -p codebule \
+              -c argocd \
+              -r us-east-1 \
+              -e "${{ github.event.inputs.branch }}" \
+              -a destroy
