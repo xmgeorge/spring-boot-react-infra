@@ -22,20 +22,20 @@ module "vpc" {
 
   # Adding tags to public subnets
   public_subnet_tags = {
-    "Name"                                    = "Public_Subnet_${local.vpc_name}"
-    "Type"                                    = "Public_Subnets"
-    "kubernetes.io/role/elb"                  = 1
-    "kubernetes.io/cluster/${local.vpc_name}" = "shared"
+    "Name"                                        = "Public_Subnet_${local.vpc_name}"
+    "Type"                                        = "Public_Subnets"
+    "kubernetes.io/role/elb"                      = 1
+    "kubernetes.io/cluster/${local.cluster_name}" = "owned"
 
 
   }
 
   # Adding tags to private subnets
   private_subnet_tags = {
-    "Name"                                    = "Private_Subnet_${local.vpc_name}"
-    "Type"                                    = "Private Subnets"
-    "kubernetes.io/role/internal-elb"         = 1
-    "kubernetes.io/cluster/${local.vpc_name}" = "shared"
+    "Name"                                        = "Private_Subnet_${local.vpc_name}"
+    "Type"                                        = "Private Subnets"
+    "kubernetes.io/role/internal-elb"             = 1
+    "kubernetes.io/cluster/${local.cluster_name}" = "owned"
 
   }
 

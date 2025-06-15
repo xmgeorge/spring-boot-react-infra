@@ -30,13 +30,39 @@ module "eks_blueprints_addons" {
     }
   }
 
-  enable_aws_load_balancer_controller = false
+  enable_aws_load_balancer_controller = true
+
+  aws_load_balancer_controller = {
+    service_account_annotations = {
+      "eks.amazonaws.com/role-arn" = aws_iam_role.alb_controller.arn
+    }
+  }
+
+  enable_external_dns = false
+  enable_cert_manager = false
+
+  #   external_dns = {
+  #   name          = "external-dns"
+  #   chart_version = "1.12.2"
+  #   repository    = "https://kubernetes-sigs.github.io/external-dns/"
+  #   namespace     = "external-dns"
+
+  #   values = [yamlencode({
+  #     args = [
+  #       "--source=ingress",
+  #       "--domain-filter=georgeulahannan.live",
+  #       "--provider=aws",
+  #       "--registry=txt",
+  #       "--txt-owner-id=george-cluster",
+  #       "--txt-prefix=external-dns-",
+  #       "--interval=1m"
+  #     ]
+  #   })]
+  # }
+  # external_dns_route53_zone_arns = [data.terraform_remote_state.acm.outputs.zone_arn]
 
   tags = local.tags
 }
-
-
-
 
 #Role for vpc cni
 resource "aws_iam_role" "vpc_cni" {
@@ -74,4 +100,38 @@ resource "aws_iam_role_policy_attachment" "vpc_cni_ec2" {
 resource "aws_iam_role_policy_attachment" "vpc_cni_networking" {
   role       = aws_iam_role.vpc_cni.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonVPCFullAccess"
+}
+
+
+data "aws_iam_policy_document" "alb_controller_assume_role" {
+  statement {
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+    effect  = "Allow"
+
+    condition {
+      test     = "StringEquals"
+      variable = "${module.eks.oidc_provider}:sub"
+      values   = ["system:serviceaccount:kube-system:aws-load-balancer-controller"]
+    }
+
+    principals {
+      type        = "Federated"
+      identifiers = [module.eks.oidc_provider_arn]
+    }
+  }
+}
+
+resource "aws_iam_role" "alb_controller" {
+  name               = "aws-load-balancer-controller"
+  assume_role_policy = data.aws_iam_policy_document.alb_controller_assume_role.json
+}
+
+resource "aws_iam_policy" "alb_controller_policy" {
+  name   = "AWSLoadBalancerControllerIAMPolicy"
+  policy = file("${path.module}/alb-iam-policy.json")
+}
+
+resource "aws_iam_role_policy_attachment" "alb_controller_attach" {
+  role       = aws_iam_role.alb_controller.name
+  policy_arn = aws_iam_policy.alb_controller_policy.arn
 }

@@ -7,8 +7,8 @@ locals {
       "component"   = var.component
     },
   )
-
-  vpc_name = "${var.project}-${var.environment}"
-  azs      = slice(data.aws_availability_zones.available.names, 0, 3)
+  cluster_name = "${var.project}-${var.environment}-eks"
+  vpc_name     = "${var.project}-${var.environment}"
+  azs          = slice(data.aws_availability_zones.available.names, 0, 3)
 
 }

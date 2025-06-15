@@ -8,22 +8,13 @@ data "terraform_remote_state" "vpc" {
   }
 }
 
-data "terraform_remote_state" "acm" {
+data "terraform_remote_state" "eks" {
   backend = "s3"
 
   config = {
     bucket = "${var.project}-tfscaffold-${var.state_account}-${var.region}"
-    key    = "${var.project}/${var.state_account}/${var.region}/${var.environment}/acm/acm.tfstate"
+    key    = "${var.project}/${var.state_account}/${var.region}/${var.environment}/eks/eks.tfstate"
     region = var.region
   }
 }
 
-data "terraform_remote_state" "alb" {
-  backend = "s3"
-
-  config = {
-    bucket = "${var.project}-tfscaffold-${var.state_account}-${var.region}"
-    key    = "${var.project}/${var.state_account}/${var.region}/${var.environment}/alb/alb.tfstate"
-    region = var.region
-  }
-}

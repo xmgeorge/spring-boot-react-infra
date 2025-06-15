@@ -11,6 +11,7 @@ module "eks" {
   enable_cluster_creator_admin_permissions = true
   cluster_ip_family                        = "ipv4"
   enable_irsa                              = true
+  cluster_security_group_id                = data.terraform_remote_state.vpc.outputs.vpc_default_security_group
 
   #create_kms_key = false
 
@@ -50,8 +51,8 @@ module "eks" {
 
   eks_managed_node_groups = {
     default = {
-      desired_size = 2
-      max_size     = 3
+      desired_size = 1
+      max_size     = 2
       min_size     = 1
 
       instance_types = ["t3.medium"]

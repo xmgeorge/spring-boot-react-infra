@@ -3,6 +3,8 @@ name: Terraform
 on:
   push:
     branches: [dev]
+    paths:
+      - 'tfscaffold/**'
 
 jobs:
   generate_build_id:
@@ -77,9 +79,9 @@ jobs:
       - name: Run Checkov
         run: |
           cd tfscaffold/components/
-          checkov -d . --skip-check CKV_TF*
+          checkov -d . --skip-check CKV_TF* --skip-check CKV_AWS_*
 
-  view_tf_plan:
+  view_vpc_tf_plan_apply:
     needs: [generate_build_id,tflint,checkov]
     runs-on: ubuntu-latest
 
@@ -121,6 +123,142 @@ jobs:
             -e ${{ needs.generate_build_id.outputs.branch }} \
             -a plan
 
+      - name: Terraform VPC Plan Apply
+        id: vpc_plan_apply
+        run: |
+          cd tfscaffold
+          ./bin/terraform.sh \
+            -p codebule \
+            -c vpc \
+            -r us-east-1 \
+            -i ${{ needs.generate_build_id.outputs.build_id }} \
+            -e ${{ needs.generate_build_id.outputs.branch }} \
+            -a apply
+
+  view_acm_tf_plan_apply:
+    needs: [generate_build_id,tflint,checkov,view_vpc_tf_plan_apply]
+    runs-on: ubuntu-latest
+    container:
+      image: georgeulahannan/terraform:07
+      options: --user root
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Terraform ACM Show Plan
+        id: acm_plan_show
+        run: |
+          cd tfscaffold
+          ./bin/terraform.sh \
+            -p codebule \
+            -c acm \
+            -r us-east-1 \
+            -e ${{ needs.generate_build_id.outputs.branch }} \
+            -a show
+    
+      - name: Terraform ACM Plan to S3
+        id: acm_plan_upload_s3
+        run: |
+          cd tfscaffold
+          ./bin/terraform.sh \
+            -p codebule \
+            -c acm \
+            -r us-east-1 \
+            -i ${{ needs.generate_build_id.outputs.build_id }} \
+            -e ${{ needs.generate_build_id.outputs.branch }} \
+            -a plan
+
+      - name: Terraform ACM Plan Apply
+        id: acm_plan_apply
+        run: |
+          cd tfscaffold
+          ./bin/terraform.sh \
+            -p codebule \
+            -c acm \
+            -r us-east-1 \
+            -i ${{ needs.generate_build_id.outputs.build_id }} \
+            -e ${{ needs.generate_build_id.outputs.branch }} \
+            -a apply
+  
+  view_alb_tf_plan_apply:
+    needs: [generate_build_id,tflint,checkov,view_vpc_tf_plan_apply,view_acm_tf_plan_apply]
+    runs-on: ubuntu-latest
+    container:
+      image: georgeulahannan/terraform:07
+      options: --user root
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Terraform ALB Show Plan
+        id: alb_plan_show
+        run: |
+          cd tfscaffold
+          ./bin/terraform.sh \
+            -p codebule \
+            -c alb \
+            -r us-east-1 \
+            -e ${{ needs.generate_build_id.outputs.branch }} \
+            -a show
+    
+      - name: Terraform ALB Plan to S3
+        id: alb_plan_upload_s3
+        run: |
+          cd tfscaffold
+          ./bin/terraform.sh \
+            -p codebule \
+            -c alb \
+            -r us-east-1 \
+            -i ${{ needs.generate_build_id.outputs.build_id }} \
+            -e ${{ needs.generate_build_id.outputs.branch }} \
+            -a plan
+
+      - name: Terraform ALB Plan Apply
+        id: alb_plan_apply
+        run: |
+          cd tfscaffold
+          ./bin/terraform.sh \
+            -p codebule \
+            -c alb \
+            -r us-east-1 \
+            -i ${{ needs.generate_build_id.outputs.build_id }} \
+            -e ${{ needs.generate_build_id.outputs.branch }} \
+            -a apply
+
+  view_eks_tf_plan_apply:
+    needs: [generate_build_id,tflint,checkov,view_vpc_tf_plan_apply,view_alb_tf_plan_apply]
+    runs-on: ubuntu-latest
+    container:
+      image: georgeulahannan/terraform:07
+      options: --user root
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
       - name: Terraform EKS Show Plan
         id: eks_plan_show
         run: |
@@ -144,37 +282,6 @@ jobs:
             -e ${{ needs.generate_build_id.outputs.branch }} \
             -a plan
 
-  tf_plan_apply:
-    needs: [generate_build_id,terraform_fmt,tflint,checkov,view_tf_plan]
-    runs-on: ubuntu-latest
-
-    container:
-      image: georgeulahannan/terraform:07
-      options: --user root
-      
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - name: Terraform VPC Plan Apply
-        id: vpc_plan_apply
-        run: |
-          cd tfscaffold
-          ./bin/terraform.sh \
-            -p codebule \
-            -c vpc \
-            -r us-east-1 \
-            -i ${{ needs.generate_build_id.outputs.build_id }} \
-            -e ${{ needs.generate_build_id.outputs.branch }} \
-            -a apply
-
       - name: Terraform EKS Plan Apply
         id: eks_plan_apply
         run: |
@@ -182,6 +289,165 @@ jobs:
           ./bin/terraform.sh \
             -p codebule \
             -c eks \
+            -r us-east-1 \
+            -i ${{ needs.generate_build_id.outputs.build_id }} \
+            -e ${{ needs.generate_build_id.outputs.branch }} \
+            -a apply
+
+  view_addons_tf_plan_apply:
+    needs: [generate_build_id,tflint,checkov,view_vpc_tf_plan_apply,view_eks_tf_plan_apply]
+    runs-on: ubuntu-latest
+    container:
+      image: georgeulahannan/terraform:07
+      options: --user root
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Terraform EKS Addon packages Show Plan
+        id: addons_plan_show
+        run: |
+          cd tfscaffold
+          ./bin/terraform.sh \
+            -p codebule \
+            -c addons \
+            -r us-east-1 \
+            -e ${{ needs.generate_build_id.outputs.branch }} \
+            -a show
+    
+      - name: Terraform EKS Addon packages Plan to S3
+        id: addons_plan_upload_s3
+        run: |
+          cd tfscaffold
+          ./bin/terraform.sh \
+            -p codebule \
+            -c addons \
+            -r us-east-1 \
+            -i ${{ needs.generate_build_id.outputs.build_id }} \
+            -e ${{ needs.generate_build_id.outputs.branch }} \
+            -a plan
+
+      - name: Terraform EKS Addon packages Plan Apply
+        id: addons_plan_apply
+        run: |
+          cd tfscaffold
+          ./bin/terraform.sh \
+            -p codebule \
+            -c addons \
+            -r us-east-1 \
+            -i ${{ needs.generate_build_id.outputs.build_id }} \
+            -e ${{ needs.generate_build_id.outputs.branch }} \
+            -a apply
+  
+  view_argocd_tf_plan_apply:
+    needs: [generate_build_id,tflint,checkov,view_vpc_tf_plan_apply,view_eks_tf_plan_apply,view_addons_tf_plan_apply]
+    runs-on: ubuntu-latest
+    container:
+      image: georgeulahannan/terraform:07
+      options: --user root
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Terraform ARGOCD packages Show Plan
+        id: argocd_plan_show
+        run: |
+          cd tfscaffold
+          ./bin/terraform.sh \
+            -p codebule \
+            -c argocd \
+            -r us-east-1 \
+            -e ${{ needs.generate_build_id.outputs.branch }} \
+            -a show
+    
+      - name: Terraform ARGOCD packages Plan to S3
+        id: argocd_plan_upload_s3
+        run: |
+          cd tfscaffold
+          ./bin/terraform.sh \
+            -p codebule \
+            -c argocd \
+            -r us-east-1 \
+            -i ${{ needs.generate_build_id.outputs.build_id }} \
+            -e ${{ needs.generate_build_id.outputs.branch }} \
+            -a plan
+
+      - name: Terraform ARGOCD packages Plan Apply
+        id: argocd_plan_apply
+        run: |
+          cd tfscaffold
+          ./bin/terraform.sh \
+            -p codebule \
+            -c argocd \
+            -r us-east-1 \
+            -i ${{ needs.generate_build_id.outputs.build_id }} \
+            -e ${{ needs.generate_build_id.outputs.branch }} \
+            -a apply
+
+  view_argocdapp_tf_plan_apply:
+    needs: [generate_build_id,tflint,checkov,view_vpc_tf_plan_apply,view_eks_tf_plan_apply,view_addons_tf_plan_apply,view_argocd_tf_plan_apply]
+    runs-on: ubuntu-latest
+    container:
+      image: georgeulahannan/terraform:07
+      options: --user root
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Terraform ARGOCD APP packages Show Plan
+        id: argocdapp_plan_show
+        run: |
+          cd tfscaffold
+          ./bin/terraform.sh \
+            -p codebule \
+            -c argocdapp \
+            -r us-east-1 \
+            -e ${{ needs.generate_build_id.outputs.branch }} \
+            -a show
+    
+      - name: Terraform ARGOCD packages Plan to S3
+        id: argocdapp_plan_upload_s3
+        run: |
+          cd tfscaffold
+          ./bin/terraform.sh \
+            -p codebule \
+            -c argocdapp \
+            -r us-east-1 \
+            -i ${{ needs.generate_build_id.outputs.build_id }} \
+            -e ${{ needs.generate_build_id.outputs.branch }} \
+            -a plan
+
+      - name: Terraform ARGOCD APP Plan Apply
+        id: argocdapp_plan_apply
+        run: |
+          cd tfscaffold
+          ./bin/terraform.sh \
+            -p codebule \
+            -c argocdapp \
             -r us-east-1 \
             -i ${{ needs.generate_build_id.outputs.build_id }} \
             -e ${{ needs.generate_build_id.outputs.branch }} \

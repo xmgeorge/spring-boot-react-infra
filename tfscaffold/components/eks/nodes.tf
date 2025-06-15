@@ -7,8 +7,8 @@ module "self_managed_node_group" {
   cluster_endpoint    = module.eks.cluster_endpoint
   cluster_auth_base64 = module.eks.cluster_certificate_authority_data
 
-  subnet_ids = data.terraform_remote_state.vpc.outputs.public_subnets
-
+  subnet_ids           = data.terraform_remote_state.vpc.outputs.public_subnets
+  target_group_arns    = [data.terraform_remote_state.alb.outputs.alb_target_group_arn]
   instance_type        = "t3.large"
   min_size             = 1
   max_size             = 2
@@ -20,6 +20,7 @@ module "self_managed_node_group" {
   vpc_security_group_ids = [
     module.eks.cluster_primary_security_group_id,
     module.eks.node_security_group_id,
+    data.terraform_remote_state.vpc.outputs.vpc_default_security_group,
   ]
 
   tags = local.tags

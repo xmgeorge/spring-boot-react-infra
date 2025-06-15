@@ -1,0 +1,100 @@
+name: DestroyAll
+
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch name (e.g., main, dev)"
+        required: true
+        default: "dev"
+
+jobs:
+  destroyall:
+    runs-on: ubuntu-latest
+    outputs:
+      branch: ${{ steps.extract_branch.outputs.branch }}
+
+    container:
+      image: georgeulahannan/terraform:07
+      options: --user root
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract branch name
+        id: extract_branch
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Terraform Destroy argocdapp
+        run: |
+          cd tfscaffold
+            ./bin/terraform.sh \
+              -p codebule \
+              -c argocdapp \
+              -r us-east-1 \
+              -e "${{ steps.extract_branch.outputs.branch }}" \
+              -a destroy
+      - name: Terraform Destroy argocd
+        run: |
+          cd tfscaffold
+            ./bin/terraform.sh \
+              -p codebule \
+              -c argocd \
+              -r us-east-1 \
+              -e "${{ steps.extract_branch.outputs.branch }}" \
+              -a destroy
+      - name: Terraform Destroy addons
+        run: |
+          cd tfscaffold
+            ./bin/terraform.sh \
+              -p codebule \
+              -c addons \
+              -r us-east-1 \
+              -e "${{ steps.extract_branch.outputs.branch }}" \
+              -a destroy
+      - name: Terraform Destroy eks
+        run: |
+          cd tfscaffold
+            ./bin/terraform.sh \
+              -p codebule \
+              -c eks \
+              -r us-east-1 \
+              -e "${{ steps.extract_branch.outputs.branch }}" \
+              -a destroy
+      - name: Terraform Destroy alb
+        run: |
+          cd tfscaffold
+            ./bin/terraform.sh \
+              -p codebule \
+              -c alb \
+              -r us-east-1 \
+              -e "${{ steps.extract_branch.outputs.branch }}" \
+              -a destroy
+      - name: Terraform Destroy acm
+        run: |
+          cd tfscaffold
+            ./bin/terraform.sh \
+              -p codebule \
+              -c acm \
+              -r us-east-1 \
+              -e "${{ steps.extract_branch.outputs.branch }}" \
+              -a destroy
+      - name: Terraform Destroy vpc
+        run: |
+          cd tfscaffold
+            ./bin/terraform.sh \
+              -p codebule \
+              -c vpc \
+              -r us-east-1 \
+              -e "${{ steps.extract_branch.outputs.branch }}" \
+              -a destroy
