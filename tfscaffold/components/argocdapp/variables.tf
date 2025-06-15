@@ -1,11 +1,14 @@
 # Define the variables that will be initialised in etc/{env,versions}_<region>_<environment>.tfvars...
 variable "environment" {
+  type = string
 }
 
 variable "project" {
+  type = string
 }
 
 variable "region" {
+  type = string
 }
 
 variable "component" {
