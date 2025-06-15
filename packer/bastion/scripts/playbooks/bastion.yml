@@ -1,0 +1,75 @@
+---
+- name: Install Kubectl
+  hosts: all
+  become: true
+  tasks:
+    - name: Update apt cache (for Debian/Ubuntu)
+      apt:
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Install required system packages
+      apt:
+        pkg:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+          - zip
+        state: latest
+        update_cache: true
+    
+    - name: Install Kubectl
+      block:
+        - name: Fetch the kubectl binary
+          get_url:
+            url: "https://dl.k8s.io/release/v1.32.0/bin/linux/amd64/kubectl"
+            dest: /tmp/kubectl
+            mode: 0700
+
+        - name: Run the installation script
+          become: true
+          command: mv /tmp/kubectl /usr/local/bin/kubectl
+        
+        - name: Set permission
+          file:
+            path: /usr/local/bin/kubectl
+            owner: root
+            group: root
+            mode: '0755'
+        - name: Execute the command in remote shell and write the output in the specified remote file
+          shell:
+            cmd: kubectl completion bash > /etc/bash_completion.d/kubectl
+            # If you do not want to run this when the file already exists, add
+            creates: /etc/bash_completion.d/kubectl
+     # when: "'kubectl' not in ansible_facts.packages"
+    - name: Install aws cli
+      block:
+        - name: fetch aws cli
+          get_url:
+            url: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+            dest: /tmp/awscliv2.zip
+            mode: 0700
+
+        - name: Unzip aws cli
+          unarchive:
+            src: /tmp/awscliv2.zip
+            dest: /tmp/
+            remote_src: yes
+        
+        - name: Run the installation script
+          become: true
+          command: /tmp/aws/install
+          
+        - name: ls -d /tmp/aws*
+          find:
+            paths: /tmp
+            patterns: "aws*"
+            recurse: no
+            file_type: file
+          register: found_directories
+
+        - debug:
+            msg: "{{ [item.path] }} "
+          with_items: "{{ found_directories.files }}"
+
