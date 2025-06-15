@@ -2,19 +2,11 @@ name: DestroyAll
 
 on:
   push:
-    branches: [dev]
-  workflow_dispatch:
-    inputs:
-      branch:
-        description: "Branch name (e.g., main, dev)"
-        required: true
-        default: "dev"
+    branches: [destroy_all]
 
 jobs:
   destroyall:
     runs-on: ubuntu-latest
-    outputs:
-      branch: ${{ steps.extract_branch.outputs.branch }}
 
     container:
       image: georgeulahannan/terraform:07
@@ -42,7 +34,7 @@ jobs:
               -p codebule \
               -c argocdapp \
               -r us-east-1 \
-              -e "${{ steps.extract_branch.outputs.branch }}" \
+              -e dev \
               -a destroy
       - name: Terraform Destroy argocd
         run: |
@@ -51,7 +43,7 @@ jobs:
               -p codebule \
               -c argocd \
               -r us-east-1 \
-              -e "${{ steps.extract_branch.outputs.branch }}" \
+              -e dev \
               -a destroy
       - name: Terraform Destroy addons
         run: |
@@ -60,7 +52,7 @@ jobs:
               -p codebule \
               -c addons \
               -r us-east-1 \
-              -e "${{ steps.extract_branch.outputs.branch }}" \
+              -e dev \
               -a destroy
       - name: Terraform Destroy eks
         run: |
@@ -69,7 +61,7 @@ jobs:
               -p codebule \
               -c eks \
               -r us-east-1 \
-              -e "${{ steps.extract_branch.outputs.branch }}" \
+              -e dev \
               -a destroy
       - name: Terraform Destroy alb
         run: |
@@ -78,7 +70,7 @@ jobs:
               -p codebule \
               -c alb \
               -r us-east-1 \
-              -e "${{ steps.extract_branch.outputs.branch }}" \
+              -e dev \
               -a destroy
       - name: Terraform Destroy acm
         run: |
@@ -87,7 +79,16 @@ jobs:
               -p codebule \
               -c acm \
               -r us-east-1 \
-              -e "${{ steps.extract_branch.outputs.branch }}" \
+              -e dev \
+              -a destroy
+      - name: Terraform Destroy bastion
+        run: |
+          cd tfscaffold
+            ./bin/terraform.sh \
+              -p codebule \
+              -c bastion \
+              -r us-east-1 \
+              -e dev \
               -a destroy
       - name: Terraform Destroy vpc
         run: |
@@ -96,5 +97,5 @@ jobs:
               -p codebule \
               -c vpc \
               -r us-east-1 \
-              -e "${{ steps.extract_branch.outputs.branch }}" \
+              -e dev \
               -a destroy
