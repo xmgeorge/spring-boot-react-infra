@@ -1,6 +1,8 @@
 name: DestroyAll
 
 on:
+  push:
+    branches: [dev]
   workflow_dispatch:
     inputs:
       branch:
@@ -42,6 +44,51 @@ jobs:
             ./bin/terraform.sh \
               -p codebule \
               -c argocd \
+              -r us-east-1 \
+              -e "${{ github.event.inputs.branch }}" \
+              -a destroy
+      - name: Terraform Destroy addons
+        run: |
+          cd tfscaffold
+            ./bin/terraform.sh \
+              -p codebule \
+              -c addons \
+              -r us-east-1 \
+              -e "${{ github.event.inputs.branch }}" \
+              -a destroy
+      - name: Terraform Destroy eks
+        run: |
+          cd tfscaffold
+            ./bin/terraform.sh \
+              -p codebule \
+              -c eks \
+              -r us-east-1 \
+              -e "${{ github.event.inputs.branch }}" \
+              -a destroy
+      - name: Terraform Destroy alb
+        run: |
+          cd tfscaffold
+            ./bin/terraform.sh \
+              -p codebule \
+              -c alb \
+              -r us-east-1 \
+              -e "${{ github.event.inputs.branch }}" \
+              -a destroy
+      - name: Terraform Destroy acm
+        run: |
+          cd tfscaffold
+            ./bin/terraform.sh \
+              -p codebule \
+              -c acm \
+              -r us-east-1 \
+              -e "${{ github.event.inputs.branch }}" \
+              -a destroy
+      - name: Terraform Destroy vpc
+        run: |
+          cd tfscaffold
+            ./bin/terraform.sh \
+              -p codebule \
+              -c vpc \
               -r us-east-1 \
               -e "${{ github.event.inputs.branch }}" \
               -a destroy
