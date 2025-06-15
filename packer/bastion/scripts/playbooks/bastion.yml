@@ -29,7 +29,7 @@
 
         - name: Run the installation script
           become: true
-          command: sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+          command: sudo install -o root -g root -m 0755 /tmp/kubectl /usr/local/bin/kubectl
         
         - name: Execute the command in remote shell and write the output in the specified remote file
           shell:
