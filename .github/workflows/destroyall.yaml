@@ -1,12 +1,11 @@
 name: destroyall
 
 on:
+  push:
+    branches: [dev]
+    paths:
+      - 'tfscaffold/**'
   workflow_dispatch:
-    inputs:
-      branch:
-        description: "Branch name (e.g., main, dev)"
-        required: true
-        default: "dev"
 
 jobs:
   destroyall:
