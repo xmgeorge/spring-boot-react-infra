@@ -87,7 +87,7 @@ jobs:
               -p codebule \
               -c acm \
               -r us-east-1 \
-              -e "${{ steps.extract_branch.outputs.branch }} \
+              -e "${{ steps.extract_branch.outputs.branch }}" \
               -a destroy
       - name: Terraform Destroy vpc
         run: |
