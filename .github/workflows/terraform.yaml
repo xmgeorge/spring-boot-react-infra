@@ -77,7 +77,7 @@ jobs:
       - name: Run Checkov
         run: |
           cd tfscaffold/components/
-          checkov -d . --skip-check CKV_TF* CKV_AWS_*
+          checkov -d . --skip-check CKV_TF* --skip-check CKV_AWS_*
 
   view_tf_plan:
     needs: [generate_build_id,tflint,checkov]
