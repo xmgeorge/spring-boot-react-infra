@@ -23,20 +23,14 @@
       block:
         - name: Fetch the kubectl binary
           get_url:
-            url: "https://dl.k8s.io/release/v1.32.0/bin/linux/amd64/kubectl"
+            url: "https://dl.k8s.io/release/v1.33.0/bin/linux/amd64/kubectl"
             dest: /tmp/kubectl
             mode: 0700
 
         - name: Run the installation script
           become: true
-          command: mv /tmp/kubectl /usr/local/bin/kubectl
+          command: sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
         
-        - name: Set permission
-          file:
-            path: /usr/local/bin/kubectl
-            owner: root
-            group: root
-            mode: '0755'
         - name: Execute the command in remote shell and write the output in the specified remote file
           shell:
             cmd: kubectl completion bash > /etc/bash_completion.d/kubectl
