@@ -9,9 +9,7 @@ on:
         default: "dev"
 
 jobs:
-    
   destroyall:
-
     runs-on: ubuntu-latest
 
     container:
@@ -29,16 +27,14 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-
       - name: Terraform Destroy All
-        id: destroy_all
         run: |
           cd tfscaffold
-            for component in argocdapp argocd; do
+          for component in argocdapp argocd; do
             ./bin/terraform.sh \
-                -p codebule \
-                -c "$component" \
-                -r us-east-1 \
-                -e ${{ needs.generate_build_id.outputs.branch }} \
-                -a destroy
-            done
+              -p codebule \
+              -c "$component" \
+              -r us-east-1 \
+              -e "${{ github.event.inputs.branch }}" \
+              -a destroy
+          done
