@@ -399,7 +399,7 @@ jobs:
             -a apply
 
   view_argocdapp_tf_plan_apply:
-    needs: [generate_build_id,tflint,checkov,view_vpc_tf_plan_apply,view_eks_tf_plan_apply,view_addons_tf_plan_apply]
+    needs: [generate_build_id,tflint,checkov,view_vpc_tf_plan_apply,view_eks_tf_plan_apply,view_addons_tf_plan_apply,view_argocd_tf_plan_apply]
     runs-on: ubuntu-latest
     container:
       image: georgeulahannan/terraform:07
