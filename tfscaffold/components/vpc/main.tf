@@ -12,13 +12,33 @@ module "vpc" {
   # public_subnets  = ["10.0.0.0/20", "10.0.16.0/20", "10.0.32.0/20"]
   private_subnets = [for k, v in local.azs : cidrsubnet(var.cidr, 4, k)]
   public_subnets  = [for k, v in local.azs : cidrsubnet(var.cidr, 8, k + 48)]
+  
+  manage_default_security_group = true
+  default_security_group_ingress = [{
+    
+    from_port       = 0
+    to_port         = 0
+    protocol        = "-1"
+    self = "true"
+   # ALB SG
+    description     = "Allow Traffic in VPC"
+  
+  }]
 
+  default_security_group_egress = [{
+    from_port       = 0
+    to_port         = 0
+    protocol        = "-1"
+    cidr_blocks = "0.0.0.0/0"
+   # ALB SG
+    description     = "Allow Traffic Outbound"
+  }]
 
-  enable_nat_gateway      = false
-  single_nat_gateway      = false
-  enable_vpn_gateway      = false
-  one_nat_gateway_per_az  = false
-  map_public_ip_on_launch = true
+  enable_nat_gateway      = var.enable_nat_gateway
+  single_nat_gateway      = var.single_nat_gateway
+  enable_vpn_gateway      = var.enable_vpn_gateway
+  one_nat_gateway_per_az  = var.one_nat_gateway_per_az
+  map_public_ip_on_launch = var.map_public_ip_on_launch
 
   # Adding tags to public subnets
   public_subnet_tags = {

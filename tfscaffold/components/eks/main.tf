@@ -13,7 +13,8 @@ module "eks" {
   enable_irsa                              = true
   cluster_security_group_id                = data.terraform_remote_state.vpc.outputs.vpc_default_security_group
 
-  #create_kms_key = false
+  # create_kms_key = false
+  kms_key_deletion_window_in_days = 7
 
 
   #   kms_key_enable_default_policy = false
@@ -47,7 +48,7 @@ module "eks" {
 
 
   vpc_id     = data.terraform_remote_state.vpc.outputs.vpc_id
-  subnet_ids = data.terraform_remote_state.vpc.outputs.public_subnets
+  subnet_ids = data.terraform_remote_state.vpc.outputs.private_subnets
 
   eks_managed_node_groups = {
     default = {
@@ -66,7 +67,11 @@ module "eks" {
         default_policy    = "arn:aws:iam::aws:policy/AmazonSSMManagedEC2InstanceDefaultPolicy"
       }
 
-      subnet_ids = data.terraform_remote_state.vpc.outputs.public_subnets
+      target_group_arns = [data.terraform_remote_state.alb.outputs.alb_target_group_arn]
+
+      # cluster_security_group_id = data.terraform_remote_state.vpc.outputs.vpc_default_security_group
+
+      subnet_ids = data.terraform_remote_state.vpc.outputs.private_subnets
     }
   }
 
@@ -100,4 +105,14 @@ locals {
       }
     ]
   ])
+}
+
+
+resource "aws_autoscaling_attachment" "example" {
+  autoscaling_group_name = module.eks.eks_managed_node_groups_autoscaling_group_names[0]
+  lb_target_group_arn    = data.terraform_remote_state.alb.outputs.alb_target_group_arn
+}
+
+output "autoscaling_group_names_self_managed_node_group" {
+  value = module.eks.eks_managed_node_groups_autoscaling_group_names[0]
 }

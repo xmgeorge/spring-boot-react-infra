@@ -5,93 +5,85 @@ resource "kubernetes_namespace_v1" "argocd" {
 }
 
 resource "helm_release" "argo_cd" {
-  name             = "argo-cd"
+  name             = "argocd"
   repository       = "https://argoproj.github.io/argo-helm"
   chart            = "argo-cd"
-  version          = "8.0.17"
+  version          = "7.8.22"
   namespace        = kubernetes_namespace_v1.argocd.id
   create_namespace = false
 
   set {
-    name  = "server.service.type"
-    value = "ClusterIP"
+    name  = "global.image.tag"
+    value = "v2.14.9"
   }
 
   set {
-    name  = "server.service.port"
-    value = "80"
-  }
+  name  = "server.insecure"
+  value = "true"
+}
+
+set {
+  name  = "configs.params.server.insecure"
+  value = "true"
+}
+
 
   set {
-    name  = "configs.params.server.insecure"
-    value = "false"
-  }
-
-  set {
-    name  = "configs.params.server.insecure"
+    name  = "configs.cm.params.create"
     value = "true"
   }
 
-  # Readiness probe config
   set {
-    name  = "server.readinessProbe.httpGet.path"
-    value = "/healthz"
+    name  = "configs.cm.params.server.insecure"
+    value = "true"
   }
 
-  set {
-    name  = "server.readinessProbe.httpGet.port"
-    value = "8080"
-  }
 
-  set {
-    name  = "server.readinessProbe.initialDelaySeconds"
-    value = "10"
-  }
+  # set {
+  #   name  = "metrics.enabled"
+  #   value = "true"
+  # }
 
-  set {
-    name  = "server.readinessProbe.periodSeconds"
-    value = "10"
-  }
+  # set {
+  #   name  = "server.metrics.enabled"
+  #   value = "true"
+  # }
 
-  # Liveness probe config
-  set {
-    name  = "server.livenessProbe.httpGet.path"
-    value = "/healthz"
-  }
+  # set {
+  #   name  = "controller.metrics.enabled"
+  #   value = "true"
+  # }
 
-  set {
-    name  = "server.livenessProbe.httpGet.port"
-    value = "8080"
-  }
+  # set {
+  #   name  = "repoServer.metrics.enabled"
+  #   value = "true"
+  # }
 
-  set {
-    name  = "server.livenessProbe.initialDelaySeconds"
-    value = "15"
-  }
+  # set {
+  #   name  = "applicationSet.metrics.enabled"
+  #   value = "true"
+  # }
 
-  set {
-    name  = "server.livenessProbe.periodSeconds"
-    value = "20"
-  }
+  #  set {
+  #   name  = "redis.metrics.enable"
+  #   value = "true"
+  # }
 
-  set {
-    name  = "server.extraEnv[0].name"
-    value = "ARGOCD_SERVER_HTTP_PORT"
-  }
-
-  set {
-    name  = "server.extraEnv[0].value"
-    value = "8080"
-  }
-
-  set {
-    name  = "server.extraEnv[1].name"
-    value = "PROXY_PROTO_HEADER"
-  }
-
-  set {
-    name  = "server.extraEnv[1].value"
-    value = "X-Forwarded-Proto"
-  }
 }
 
+
+#  helm upgrade --install argocd argo/argo-cd \
+#   --namespace argocd \
+#   --create-namespace \
+#   --version 7.8.22 \
+#   --set global.image.tag=v2.14.9 \
+#   --set server.insecure=true \
+#   --set metrics.enabled=true \
+#   --set server.metrics.enabled=true \
+#   --set controller.metrics.enabled=true \
+#   --set repoServer.metrics.enabled=true \
+#   --set applicationSet.metrics.enabled=true \
+#   --set redis.metrics.enabled=true \
+#   --set repoServer.persistence.enabled=true \
+#   --set repoServer.persistence.storageClassName=ebs-wffc \
+#   --set repoServer.persistence.size=10Gi

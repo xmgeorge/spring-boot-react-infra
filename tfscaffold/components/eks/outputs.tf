@@ -134,3 +134,5 @@ output "eks_connect" {
   description = "Command to update kubeconfig to connect to the EKS cluster"
   value       = "aws eks --region ${var.region} update-kubeconfig --name ${module.eks.cluster_name}"
 }
+
+

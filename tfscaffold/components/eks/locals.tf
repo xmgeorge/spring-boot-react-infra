@@ -24,3 +24,9 @@ locals {
 
 }
 
+
+
+
+locals {
+  openid_connect_provider_arn_extract = element(split("oidc-provider/", "${aws_iam_openid_connect_provider.name.arn}"), 1)
+}

@@ -9,39 +9,39 @@ resource "helm_release" "nginx_controller" {
   name       = "ingress-nginx"
   repository = "https://kubernetes.github.io/ingress-nginx"
   chart      = "ingress-nginx"
-  version = "4.12.3"
+  version    = "4.12.3"
 
-  namespace  = kubernetes_namespace_v1.nginx_controller.id
+  namespace = kubernetes_namespace_v1.nginx_controller.id
 
-set {
-  name = "controller.kind"
-  value = "Deployment"
-}
+  set {
+    name  = "controller.kind"
+    value = "Deployment"
+  }
 
-set {
-  name = "controller.service.type"
-  value = "NodePort"
-}
+  set {
+    name  = "controller.service.type"
+    value = "NodePort"
+  }
 
-set {
-  name = "controller.service.nodePorts.http"
-  value = "30080"
-}
+  set {
+    name  = "controller.service.nodePorts.http"
+    value = "30080"
+  }
 
-set {
-  name = "controller.service.nodePorts.https"
-  value = "30443"
-}
+  set {
+    name  = "controller.service.nodePorts.https"
+    value = "30443"
+  }
 
-set {
-  name = "controller.healthCheckPath"
-  value = "/healthz"
-}
+  set {
+    name  = "controller.healthCheckPath"
+    value = "/healthz"
+  }
 
-set {
-  name = "controller.extraArgs.enable-ssl-passthrough"
-  value = "false"
-}
+  set {
+    name  = "controller.extraArgs.enable-ssl-passthrough"
+    value = "false"
+  }
 
 }
 

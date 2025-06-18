@@ -62,7 +62,7 @@ module "alb" {
       protocol    = "HTTP"
       port        = 30080
       target_type = "instance"
-      target_id   = "i-081e02096f59bd22f"
+      create_attachment = false
     }
 
   }
@@ -121,3 +121,24 @@ module "alb" {
 #         InstanceTargetGroupTag = "baz"
 #       }
 #     }
+
+data "aws_route53_zone" "selected" {
+  name = "georgeulahannan.live."
+}
+
+resource "aws_route53_record" "www" {
+  for_each = toset([data.aws_route53_zone.selected.name,"*.${data.aws_route53_zone.selected.name}"])
+
+  zone_id = data.aws_route53_zone.selected.zone_id
+  name    = each.key
+  type    = "A"
+
+  alias {
+    name                   = module.alb.dns_name
+    zone_id                = module.alb.zone_id
+    evaluate_target_health = true
+  }
+
+  allow_overwrite = true
+
+}
