@@ -18,10 +18,10 @@ resource "helm_release" "prometheus" {
 }
 
 resource "helm_release" "loki_stack" {
-  name       = "grafana"
-  namespace  = kubernetes_namespace_v1.name.id
-  repository = "https://grafana.github.io/helm-charts"
-  chart      = "loki-stack"
+  name             = "grafana"
+  namespace        = kubernetes_namespace_v1.name.id
+  repository       = "https://grafana.github.io/helm-charts"
+  chart            = "loki-stack"
   create_namespace = true
 
   set {
