@@ -58,10 +58,10 @@ module "alb" {
 
   target_groups = {
     ex-instance = {
-      name_prefix = "h1"
-      protocol    = "HTTP"
-      port        = 30080
-      target_type = "instance"
+      name_prefix       = "h1"
+      protocol          = "HTTP"
+      port              = 30080
+      target_type       = "instance"
       create_attachment = false
     }
 
@@ -127,7 +127,7 @@ data "aws_route53_zone" "selected" {
 }
 
 resource "aws_route53_record" "www" {
-  for_each = toset([data.aws_route53_zone.selected.name,"*.${data.aws_route53_zone.selected.name}"])
+  for_each = toset([data.aws_route53_zone.selected.name, "*.${data.aws_route53_zone.selected.name}"])
 
   zone_id = data.aws_route53_zone.selected.zone_id
   name    = each.key
