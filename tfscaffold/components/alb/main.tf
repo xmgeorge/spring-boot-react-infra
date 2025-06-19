@@ -25,7 +25,7 @@ module "alb" {
   security_group_egress_rules = {
     all = {
       ip_protocol = "-1"
-      cidr_ipv4   = "10.0.0.0/16"
+      cidr_ipv4   = "0.0.0.0/0"
     }
   }
 
@@ -63,17 +63,21 @@ module "alb" {
       port              = 30080
       target_type       = "instance"
       create_attachment = false
+      health_check = {
+        enabled             = true
+        interval            = 30
+        path                = "/healthz"
+        port                = "traffic-port"
+        healthy_threshold   = 3
+        unhealthy_threshold = 3
+        timeout             = 6
+        protocol            = "HTTP"
+        port                = 30080
+        matcher             = "200-399"
+      }
     }
 
   }
-
-  # route53_records = {
-  #   A = {
-  #     name    = data.aws_route53_zone.selected.name
-  #     type    = "A"
-  #     zone_id = data.aws_route53_zone.selected.zone_id
-  #   }
-  # }
 
   tags = {
     Environment = "Development"
@@ -82,45 +86,6 @@ module "alb" {
 }
 
 
-# target_groups = {
-#     ex-instance = {
-#       name_prefix                       = "h1"
-#       protocol                          = "HTTP"
-#       port                              = 80
-#       target_type                       = "instance"
-#       deregistration_delay              = 10
-#       load_balancing_algorithm_type     = "weighted_random"
-#       load_balancing_anomaly_mitigation = "on"
-#       load_balancing_cross_zone_enabled = false
-
-#       target_group_health = {
-#         dns_failover = {
-#           minimum_healthy_targets_count = 2
-#         }
-#         unhealthy_state_routing = {
-#           minimum_healthy_targets_percentage = 50
-#         }
-#       }
-
-#       health_check = {
-#         enabled             = true
-#         interval            = 30
-#         path                = "/healthz"
-#         port                = "traffic-port"
-#         healthy_threshold   = 3
-#         unhealthy_threshold = 3
-#         timeout             = 6
-#         protocol            = "HTTP"
-#         matcher             = "200-399"
-#       }
-
-#       protocol_version = "HTTP1"
-#       target_id        = aws_instance.this.id
-#       port             = 80
-#       tags = {
-#         InstanceTargetGroupTag = "baz"
-#       }
-#     }
 
 data "aws_route53_zone" "selected" {
   name = "georgeulahannan.live."
@@ -142,3 +107,4 @@ resource "aws_route53_record" "www" {
   allow_overwrite = true
 
 }
+

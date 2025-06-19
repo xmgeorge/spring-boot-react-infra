@@ -48,7 +48,7 @@ module "eks" {
 
 
   vpc_id     = data.terraform_remote_state.vpc.outputs.vpc_id
-  subnet_ids = data.terraform_remote_state.vpc.outputs.private_subnets
+  subnet_ids = data.terraform_remote_state.vpc.outputs.public_subnets
 
   eks_managed_node_groups = {
     default = {
@@ -71,7 +71,7 @@ module "eks" {
 
       # cluster_security_group_id = data.terraform_remote_state.vpc.outputs.vpc_default_security_group
 
-      subnet_ids = data.terraform_remote_state.vpc.outputs.private_subnets
+      subnet_ids = data.terraform_remote_state.vpc.outputs.public_subnets
     }
   }
 
@@ -108,11 +108,11 @@ locals {
 }
 
 
-resource "aws_autoscaling_attachment" "example" {
-  autoscaling_group_name = module.eks.eks_managed_node_groups_autoscaling_group_names[0]
-  lb_target_group_arn    = data.terraform_remote_state.alb.outputs.alb_target_group_arn
-}
+# resource "aws_autoscaling_attachment" "example" {
+#   autoscaling_group_name = module.eks.eks_managed_node_groups_autoscaling_group_names[0]
+#   lb_target_group_arn    = data.terraform_remote_state.alb.outputs.alb_target_group_arn
+# }
 
-output "autoscaling_group_names_self_managed_node_group" {
-  value = module.eks.eks_managed_node_groups_autoscaling_group_names[0]
-}
+# output "autoscaling_group_names_self_managed_node_group" {
+#   value = module.eks.eks_managed_node_groups_autoscaling_group_names[0]
+# }
