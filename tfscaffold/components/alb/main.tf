@@ -72,7 +72,6 @@ module "alb" {
         unhealthy_threshold = 3
         timeout             = 6
         protocol            = "HTTP"
-        port                = 30080
         matcher             = "200-399"
       }
     }
